@@ -239,5 +239,3 @@ if player.Character then
         watchhumanoid(hum)
     end
 end
-
--- pukie serin is pro coder
