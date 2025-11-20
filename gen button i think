@@ -1,0 +1,82 @@
+local Players = game:GetService("Players")
+local lp = Players.LocalPlayer
+local mouse = lp:GetMouse()
+
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CustomButtonGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = lp:WaitForChild("PlayerGui")
+
+
+local buttonFrame = Instance.new("Frame")
+buttonFrame.Size = UDim2.new(0, 150, 0, 50)
+buttonFrame.Position = UDim2.new(0, 100, 0, 100)
+buttonFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+buttonFrame.BorderSizePixel = 0
+buttonFrame.Parent = screenGui
+buttonFrame.Active = true -- required to detect input
+buttonFrame.Draggable = false -- we'll do custom drag
+
+
+local buttonText = Instance.new("TextLabel")
+buttonText.Size = UDim2.new(1, 0, 1, 0)
+buttonText.BackgroundTransparency = 1
+buttonText.Text = "Run Code"
+buttonText.TextColor3 = Color3.fromRGB(255, 255, 255)
+buttonText.Font = Enum.Font.SourceSansBold
+buttonText.TextSize = 20
+buttonText.Parent = buttonFrame
+
+
+local dragging = false
+local dragInput, dragStart, startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    buttonFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                                     startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+buttonFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = buttonFrame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+buttonFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+
+
+buttonFrame.MouseButton1Click:Connect(function()
+    local function GeneratorOnce()
+  local IngameMapFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Ingame")
+  local SubMapFolder = IngameMapFolder and IngameMapFolder:FindFirstChild("Map")
+  if SubMapFolder then
+    for _, g in ipairs(SubMapFolder:GetChildren()) do
+      if g.Name == "Generator" and g.Progress.Value < 100 then
+        g.Remotes.RE:FireServer()
+      end
+    end
+  end
+end
+
+GeneratorOnce()
+end)
